@@ -1,6 +1,9 @@
 import tkinter as tk
 import math
 
+# 17ms ~= 60fps
+DT = 17
+
 
 def rotate(points, angle, center):
     cos_val = math.cos(angle)
@@ -38,6 +41,7 @@ class Boid:
         return rotate(
             translation,
             self.heading,
+            # WARN: align location to head point?
             self.position,
         )
 
@@ -46,11 +50,41 @@ def flatten(nested_list):
     return [item for sublist in nested_list for item in sublist]
 
 
-# Add three pixel padding for macos
-base_points = [[8, 3], [3, 18], [8, 13], [13, 18]]
-root = tk.Tk()
-canvas = tk.Canvas(root, width=500, height=500, bg="#eeeeee")
-canvas.pack()
-canvas.create_polygon(flatten(base_points))
+def new_location(boid: Boid, dt):
+    init_x, init_y = boid.position
+    dx = boid.speed * math.cos(boid.heading)
+    dy = boid.speed * math.sin(boid.heading)
+    return (init_x + dx, init_y + dy)
 
-root.mainloop()
+
+# Add three pixel padding for macos
+# base_points = [[8, 3], [3, 18], [8, 13], [13, 18]]
+
+
+def update(boids):
+    positions = [boid.position + DT * boid.velocity() for boid in boids]
+    headings = [boid.heading + boid.turning() * DT for boid in boids]
+
+
+def render(canvas, new_boids):
+    return 0
+
+
+def refresh(canvas, boids):
+    new_boids = update(boids)
+    render(canvas, new_boids)
+    return 0
+
+
+def main():
+    root = tk.Tk()
+    canvas = tk.Canvas(root, width=500, height=500, bg="#eeeeee")
+    canvas.pack()
+    # canvas.create_polygon(flatten(base_points))
+    b = Boid((50, 50), 10, 0)
+    root.after(DT, refresh, canvas, [b])
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()
