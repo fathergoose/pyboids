@@ -20,9 +20,8 @@ class Vector(object):
 
 
 class Boid:
-    _base_points = [0, 20, 10, 15, 20, 20, 10, 0]
-    _center = [10, 15]
-    _point_offsets = [-10, 5, 0, 0, 10, 5, 0, -15]
+    # [head, left, center, right]
+    _base_points = [[5, 0], [0, 15], [5, 10], [10, 15]]
     radius = 10
 
     def __init__(self, position, speed, heading):
@@ -30,13 +29,18 @@ class Boid:
         self.speed = speed
         self.heading = heading
 
+    # I just want to translate [60,230] into [[65, 230],[60,245], [65, 240], [70, 245]]
     def points(self):
-        return "translate center of mass into a polygon"
+        [[bp[0] + self.position.x, bp[1] + self.position.y] for bp in self._base_points]
+
+
+def flatten(nested_list):
+    return [item for sublist in nested_list for item in sublist]
 
 
 root = tk.Tk()
 canvas = tk.Canvas(root, width=500, height=500, bg="#eeeeee")
 canvas.pack()
-canvas.create_polygon([0, 20, 10, 15, 20, 20, 10, 0])
+canvas.create_polygon([0, 15, 5, 10, 10, 15, 5, 0])
 
 root.mainloop()
