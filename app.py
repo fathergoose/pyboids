@@ -1,21 +1,25 @@
 import tkinter as tk
 import math
 
+# Add three pixel padding for macos
+# base_points = [[8, 3], [3, 18], [8, 13], [13, 18]]
 # 17ms ~= 60fps
-DT = 17
+# canvas.create_polygon(flatten(base_points))
+DT = 500
 
 
-def rotate(points, angle, center):
+def rotate(poly_points, angle, center):
     cos_val = math.cos(angle)
     sin_val = math.sin(angle)
     cx, cy = center
     new_points = []
-    for x_old, y_old in points:
-        x_old -= cx
-        y_old -= cy
-        x_new = x_old * cos_val - y_old * sin_val
-        y_new = x_old * sin_val + y_old * cos_val
-        new_points.append([x_new + cx, y_new + cy])
+    for points in poly_points:
+        for x_old, y_old in points:
+            x_old -= cx
+            y_old -= cy
+            x_new = x_old * cos_val - y_old * sin_val
+            y_new = x_old * sin_val + y_old * cos_val
+            new_points.append([x_new + cx, y_new + cy])
     return new_points
 
 
@@ -50,39 +54,42 @@ def flatten(nested_list):
     return [item for sublist in nested_list for item in sublist]
 
 
-def new_location(boid: Boid, dt):
+def new_location(boid: Boid):
     init_x, init_y = boid.position
     dx = boid.speed * math.cos(boid.heading)
     dy = boid.speed * math.sin(boid.heading)
-    return (init_x + dx, init_y + dy)
-
-
-# Add three pixel padding for macos
-# base_points = [[8, 3], [3, 18], [8, 13], [13, 18]]
+    return (init_x + dx * DT / 1000, init_y + dy * DT / 1000)
 
 
 def update(boids):
-    positions = [boid.position + DT * boid.velocity() for boid in boids]
-    headings = [boid.heading + boid.turning() * DT for boid in boids]
+    positions = [new_location(boid) for boid in boids]
+    # TODO: Include logic to "turn" the boid
+    # headings = [boid.heading + boid.turning() * DT for boid in boids]
+    # WARN: Will need to revise this, hard-coding for now
+    return [Boid(pos, 10, math.pi) for pos in positions]
 
 
 def render(canvas, new_boids):
-    return 0
+    canvas.delete("all")
+    for boid in new_boids:
+        points = flatten(boid.polygon_points())
+        print(points)
+        canvas.create_polygon(points, fill="black")
 
 
-def refresh(canvas, boids):
+def refresh(root, canvas, boids):
+    print("refreshing")
     new_boids = update(boids)
     render(canvas, new_boids)
-    return 0
+    root.after(DT, refresh, root, canvas, new_boids)
 
 
 def main():
     root = tk.Tk()
     canvas = tk.Canvas(root, width=500, height=500, bg="#eeeeee")
     canvas.pack()
-    # canvas.create_polygon(flatten(base_points))
-    b = Boid((50, 50), 10, 0)
-    root.after(DT, refresh, canvas, [b])
+    b = Boid((50, 50), 10, math.pi)
+    root.after(DT, refresh, root, canvas, [b])
     root.mainloop()
 
 
