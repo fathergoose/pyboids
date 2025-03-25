@@ -1,46 +1,56 @@
 import tkinter as tk
+import math
 
 
-class Vector(object):
-    def __init__(self, x=0, y=0, z=0):
-        self._x, self._y, self._z = x, y, z
-
-    def setx(self, x):
-        self._x = float(x)
-
-    def sety(self, y):
-        self._y = float(y)
-
-    def setz(self, z):
-        self._z = float(z)
-
-    x = property(lambda self: float(self._x), setx)
-    y = property(lambda self: float(self._y), sety)
-    z = property(lambda self: float(self._z), setz)
+def rotate(points, angle, center):
+    cos_val = math.cos(angle)
+    sin_val = math.sin(angle)
+    cx, cy = center
+    new_points = []
+    for x_old, y_old in points:
+        x_old -= cx
+        y_old -= cy
+        x_new = x_old * cos_val - y_old * sin_val
+        y_new = x_old * sin_val + y_old * cos_val
+        new_points.append([x_new + cx, y_new + cy])
+    return new_points
 
 
 class Boid:
     # [head, left, center, right]
-    _base_points = [[5, 0], [0, 15], [5, 10], [10, 15]]
+    # [[5, 0], [0, 15], [5, 10], [10, 15]]
+    # Pad 3 pxels from the canvas boundry
+    _base_points = [[8, 3], [3, 18], [8, 13], [13, 18]]
     radius = 10
 
     def __init__(self, position, speed, heading):
-        self.position = Vector(*position)
+        self.position = position
         self.speed = speed
         self.heading = heading
 
-    # I just want to translate [60,230] into [[65, 230],[60,245], [65, 240], [70, 245]]
-    def points(self):
-        [[bp[0] + self.position.x, bp[1] + self.position.y] for bp in self._base_points]
+    def polygon_points(self):
+        translation = (
+            [
+                [bp[0] + self.position[0], bp[1] + self.position[1]]
+                for bp in self._base_points
+            ],
+        )
+        return rotate(
+            translation,
+            self.heading,
+            self.position,
+        )
 
 
 def flatten(nested_list):
     return [item for sublist in nested_list for item in sublist]
 
 
+# Add three pixel padding for macos
+base_points = [[8, 3], [3, 18], [8, 13], [13, 18]]
 root = tk.Tk()
 canvas = tk.Canvas(root, width=500, height=500, bg="#eeeeee")
 canvas.pack()
-canvas.create_polygon([0, 15, 5, 10, 10, 15, 5, 0])
+canvas.create_polygon(flatten(base_points))
 
 root.mainloop()
