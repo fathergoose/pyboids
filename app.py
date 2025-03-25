@@ -1,14 +1,12 @@
 import tkinter as tk
 import math
 
-# Add three pixel padding for macos
-# base_points = [[8, 3], [3, 18], [8, 13], [13, 18]]
 # 17ms ~= 60fps
-# canvas.create_polygon(flatten(base_points))
-DT = 500
+DT = 17
 
 
 def rotate(poly_points, angle, center):
+    angle += math.pi / 2
     cos_val = math.cos(angle)
     sin_val = math.sin(angle)
     cx, cy = center
@@ -25,8 +23,7 @@ def rotate(poly_points, angle, center):
 
 class Boid:
     # [head, left, center, right]
-    # [[5, 0], [0, 15], [5, 10], [10, 15]]
-    # Pad 3 pxels from the canvas boundry
+    # With 3 px padding
     _base_points = [[8, 3], [3, 18], [8, 13], [13, 18]]
     radius = 10
 
@@ -63,33 +60,38 @@ def new_location(boid: Boid):
 
 def update(boids):
     positions = [new_location(boid) for boid in boids]
-    # TODO: Include logic to "turn" the boid
-    # headings = [boid.heading + boid.turning() * DT for boid in boids]
-    # WARN: Will need to revise this, hard-coding for now
-    return [Boid(pos, 10, math.pi) for pos in positions]
+    # HACK: Just hard-coding for now
+    return [Boid(pos, 10, 1) for pos in positions]
 
 
 def render(canvas, new_boids):
     canvas.delete("all")
     for boid in new_boids:
         points = flatten(boid.polygon_points())
-        print(points)
         canvas.create_polygon(points, fill="black")
 
 
 def refresh(root, canvas, boids):
-    print("refreshing")
     new_boids = update(boids)
     render(canvas, new_boids)
     root.after(DT, refresh, root, canvas, new_boids)
 
 
-def main():
+def setup():
     root = tk.Tk()
     canvas = tk.Canvas(root, width=500, height=500, bg="#eeeeee")
     canvas.pack()
-    b = Boid((50, 50), 10, math.pi)
-    root.after(DT, refresh, root, canvas, [b])
+    return root, canvas
+
+
+def init_boids():
+    return [Boid((50, 50), 10, 1)]
+
+
+def main():
+    root, canvas = setup()
+    boids = init_boids()
+    refresh(root, canvas, boids)
     root.mainloop()
 
 
