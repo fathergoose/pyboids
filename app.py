@@ -77,10 +77,19 @@ def refresh(root, canvas, boids):
     root.after(DT, refresh, root, canvas, new_boids)
 
 
+def get_mouse_xy(event):
+    canvas = event.widget
+    x = canvas.canvasx(event.x)
+    y = canvas.canvasy(event.y)
+    print(x, y)
+    return x, y
+
+
 def setup():
     root = tk.Tk()
     canvas = tk.Canvas(root, width=500, height=500, bg="#eeeeee")
     canvas.pack()
+    # canvas.bind("<Motion>", get_mouse_xy)
     return root, canvas
 
 
