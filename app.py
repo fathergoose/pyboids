@@ -3,6 +3,7 @@ import math
 
 # 17ms ~= 60fps
 DT = 17
+pointer_loc = (0, 0)
 
 
 def rotate(poly_points, angle, center):
@@ -27,7 +28,7 @@ class Boid:
     _base_points = [[8, 3], [3, 18], [8, 13], [13, 18]]
     radius = 10
 
-    def __init__(self, position, speed, heading):
+    def __init__(self, position, heading, speed=10):
         self.position = position
         self.speed = speed
         self.heading = heading
@@ -58,10 +59,18 @@ def new_location(boid: Boid):
     return (init_x + dx * DT / 1000, init_y + dy * DT / 1000)
 
 
+def point_to_mouse(position):
+    normalized_pos = (pointer_loc[0] - position[0], pointer_loc[1] - position[1])
+    heading = 0
+    if normalized_pos[0] < 0:
+        heading = math.atan(normalized_pos[1] / normalized_pos[0]) + math.pi
+    else:
+        heading = math.atan(normalized_pos[1] / normalized_pos[0])
+    return heading
+
+
 def update(boids):
-    positions = [new_location(boid) for boid in boids]
-    # HACK: Just hard-coding for now
-    return [Boid(pos, 10, 1) for pos in positions]
+    return [Boid(new_location(boid), point_to_mouse(boid.position)) for boid in boids]
 
 
 def render(canvas, new_boids):
@@ -81,7 +90,8 @@ def get_mouse_xy(event):
     canvas = event.widget
     x = canvas.canvasx(event.x)
     y = canvas.canvasy(event.y)
-    print(x, y)
+    global pointer_loc
+    pointer_loc = (x, y)
     return x, y
 
 
@@ -89,7 +99,7 @@ def setup():
     root = tk.Tk()
     canvas = tk.Canvas(root, width=500, height=500, bg="#eeeeee")
     canvas.pack()
-    # canvas.bind("<Motion>", get_mouse_xy)
+    canvas.bind("<Motion>", get_mouse_xy)
     return root, canvas
 
 
