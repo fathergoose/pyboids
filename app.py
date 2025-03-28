@@ -3,6 +3,8 @@ import math
 
 # 17ms ~= 60fps
 DT = 17
+TURN_SPEED = 0.1
+BOID_SPEED = 50
 pointer_loc = (0, 0)
 
 
@@ -28,7 +30,7 @@ class Boid:
     _base_points = [[8, 3], [3, 18], [8, 13], [13, 18]]
     radius = 10
 
-    def __init__(self, position, heading, speed=10):
+    def __init__(self, position, heading, speed=BOID_SPEED):
         self.position = position
         self.speed = speed
         self.heading = heading
@@ -43,7 +45,6 @@ class Boid:
         return rotate(
             translation,
             self.heading,
-            # WARN: align location to head point?
             self.position,
         )
 
@@ -59,18 +60,26 @@ def new_location(boid: Boid):
     return (init_x + dx * DT / 1000, init_y + dy * DT / 1000)
 
 
-def point_to_mouse(position):
-    normalized_pos = (pointer_loc[0] - position[0], pointer_loc[1] - position[1])
-    heading = 0
+def point_to_mouse(boid):
+    normalized_pos = (
+        pointer_loc[0] - boid.position[0],
+        pointer_loc[1] - boid.position[1],
+    )
     if normalized_pos[0] < 0:
-        heading = math.atan(normalized_pos[1] / normalized_pos[0]) + math.pi
+        target = math.atan(normalized_pos[1] / normalized_pos[0]) + math.pi
     else:
-        heading = math.atan(normalized_pos[1] / normalized_pos[0])
+        target = math.atan(normalized_pos[1] / normalized_pos[0])
+    heading = boid.heading
+    difference = abs(heading - target)
+    if target > boid.heading:
+        heading += (TURN_SPEED * difference) / (2 * math.pi)
+    else:
+        heading -= (TURN_SPEED * difference) / (2 * math.pi)
     return heading
 
 
 def update(boids):
-    return [Boid(new_location(boid), point_to_mouse(boid.position)) for boid in boids]
+    return [Boid(new_location(boid), point_to_mouse(boid)) for boid in boids]
 
 
 def render(canvas, new_boids):
@@ -104,7 +113,7 @@ def setup():
 
 
 def init_boids():
-    return [Boid((50, 50), 10, 1)]
+    return [Boid((50, 50), 1)]
 
 
 def main():
@@ -116,3 +125,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# TODO:
+# - [ ] Introduce concept of "turning" to replace "pointing"
+#   - Limit the speed at which a boid may change it's heading
