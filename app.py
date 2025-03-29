@@ -57,7 +57,9 @@ def new_location(boid: Boid):
     init_x, init_y = boid.position
     dx = boid.speed * math.cos(boid.heading)
     dy = boid.speed * math.sin(boid.heading)
-    return (init_x + dx * DT / 1000, init_y + dy * DT / 1000)
+    new_x = (init_x + dx * DT / 1000) % 500
+    new_y = (init_y + dy * DT / 1000) % 500
+    return (new_x, new_y)
 
 
 def point_to_mouse(boid):
